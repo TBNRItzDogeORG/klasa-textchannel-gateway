@@ -103,7 +103,7 @@ class TextChannelGateway extends GatewayStorage {
 	 * @param {(Array<string>|string)} [input=Array<string>] An object containing a id property, like discord.js objects, or a string
 	 * @returns {?(ChannelGateway|external:Settings)}
 	 */
-	async sync(input = this.client.guilds.cache.reduce((keys, guild) => keys.concat(guild.channels.cache.filter((channel) => ['text'].includes(channel.type)).map((channel) => channel.settings.id)), [])) {
+	async sync(input = [...this.client.channels.cache.filter(c => c.type === `text`).map(c => `${c.guild.id}.${c.id}`), ...[]]) {
 		if (Array.isArray(input)) {
 			if (!this._synced) this._synced = true;
 			const entries = await this.provider.getAll(this.type, input);
@@ -120,7 +120,7 @@ class TextChannelGateway extends GatewayStorage {
 
 			// Set all the remaining settings from unknown status in DB to not exists.
 			for (const guild of this.client.guilds.cache.values()) {
-				for (const channel of guild.channels.cache.filter((channel) => ['text'].includes(channel.type)).values()) if (channel.settings._existsInDB !== true) channel.settings._existsInDB = false;
+				for (const channel of guild.channels.cache.filter((channel) => channel.type === `text`).values()) if (channel.settings._existsInDB !== true) channel.settings._existsInDB = false;
 			}
 			return this;
 		}
